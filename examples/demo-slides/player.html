@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>演示播放器</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; font-family: system-ui, sans-serif; }
+  #frame { border: 0; width: 100vw; height: 100vh; display: block; }
+  #hud {
+    position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%);
+    background: rgba(20,20,19,.72); color: #fff; padding: 8px 18px; border-radius: 999px;
+    font-size: 14px; display: flex; gap: 14px; align-items: center; z-index: 10;
+    opacity: 1; transition: opacity .25s; user-select: none;
+  }
+  #hud.dim { opacity: 0; }
+  #hud b { font-weight: 600; }
+  #hud .keys { color: #98a2b3; font-size: 12px; }
+  #notes {
+    position: fixed; right: 0; top: 0; bottom: 0; width: 340px; z-index: 9;
+    background: rgba(20,20,19,.92); color: #e7e7e5; padding: 28px 24px; box-sizing: border-box;
+    font-size: 16px; line-height: 1.7; overflow-y: auto; display: none; white-space: pre-line;
+  }
+  #notes h3 { margin: 0 0 14px; font-size: 13px; color: #98a2b3; text-transform: uppercase; letter-spacing: .08em; }
+  body.notes #notes { display: block; }
+  body.notes #frame { width: calc(100vw - 340px); }
+  #overview {
+    position: fixed; inset: 0; z-index: 20; background: rgba(10,10,10,.94); display: none;
+    padding: 48px; overflow-y: auto; box-sizing: border-box;
+  }
+  body.overview #overview { display: block; }
+  #overview button {
+    display: block; width: 100%; max-width: 720px; margin: 0 auto 10px; text-align: left;
+    background: #1f1e1c; color: #e7e7e5; border: 1px solid #344054; border-radius: 10px;
+    padding: 14px 18px; font-size: 15px; cursor: pointer;
+  }
+  #overview button:hover { border-color: #c2410c; }
+  #overview button .id { color: #98a2b3; margin-right: 12px; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<iframe id="frame" title="slide"></iframe>
+<div id="hud"><b id="title"></b><span id="pos"></span><span class="keys">← → 翻页 · S 讲稿 · O 目录 · F 全屏</span></div>
+<aside id="notes"><h3>演讲备注</h3><div id="notesBody"></div></aside>
+<div id="overview"></div>
+<script>
+const DECK = {"v": 4, "lists": "css", "title": "OpenDesignKit 产品发布会", "order": ["cover", "intro", "conclusion"], "cover": "cover", "sections": {"welcome": {"description": "产品定位与核心价值", "start": "cover"}, "feature": {"description": "核心架构与设计规范", "start": "intro"}, "future": {"description": "未来规划与生态接入", "start": "conclusion"}}, "faces": {"source-sans-3": {"family": "Source Sans 3", "href": "https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap"}}, "designSystems": [], "__notes__": {"cover": "欢迎大家。今天我们将发布一套让任意智能体都能写出顶级设计与幻灯片的开源规范体系。", "intro": "重点介绍三大支柱的核心定位，强调工程规范和无 AI 套路的设计美学。", "conclusion": "最后做总结与号召，鼓励开发者在自己常用的 Agent 平台中一键接入使用。"}};
+const order = DECK.order || [];
+const notes = DECK.__notes__ || {};
+let i = Math.max(0, order.indexOf(DECK.cover));
+if (new URLSearchParams(location.search).get('n')) i = Math.min(order.length - 1, parseInt(new URLSearchParams(location.search).get('n'), 10) || 0);
+if (new URLSearchParams(location.search).get('notes') === '1') document.body.classList.add('notes');
+
+const frame = document.getElementById('frame');
+const hud = document.getElementById('hud');
+const overview = document.getElementById('overview');
+
+function show() {
+  const id = order[i];
+  if (!id) return;
+  frame.src = 'slides/' + id + '.html';
+  document.getElementById('title').textContent = DECK.title || '';
+  document.getElementById('pos').textContent = (i + 1) + ' / ' + order.length;
+  document.getElementById('notesBody').textContent = notes[id] || '（本页无备注）';
+  location.hash = '#' + (i + 1);
+  hud.classList.remove('dim');
+}
+function go(d) { i = Math.min(order.length - 1, Math.max(0, i + d)); show(); }
+function buildOverview() {
+  overview.innerHTML = '';
+  order.forEach((id, n) => {
+    const b = document.createElement('button');
+    b.innerHTML = '<span class="id">' + (n + 1) + '</span>' + id;
+    b.onclick = () => { i = n; show(); document.body.classList.remove('overview'); };
+    overview.appendChild(b);
+  });
+}
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); go(1); }
+  else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(-1); }
+  else if (e.key === 'Home') { i = 0; show(); }
+  else if (e.key === 'End') { i = order.length - 1; show(); }
+  else if (e.key === 's' || e.key === 'S') document.body.classList.toggle('notes');
+  else if (e.key === 'o' || e.key === 'O') { buildOverview(); document.body.classList.toggle('overview'); }
+  else if (e.key === 'f' || e.key === 'F') document.documentElement.requestFullscreen && document.documentElement.requestFullscreen();
+});
+let hudTimer;
+frame.addEventListener('mousemove', () => { hud.classList.remove('dim'); clearTimeout(hudTimer); hudTimer = setTimeout(() => hud.classList.add('dim'), 2400); });
+// deep link (#3) support
+if (location.hash) { const n = parseInt(location.hash.slice(1), 10); if (n >= 1 && n <= order.length) i = n - 1; }
+show();
+</script>
+</body>
+</html>

@@ -299,33 +299,422 @@ def validate_design_system(ds_dir):
     return problems, warnings
 
 # ==============================================================================
+# 4. Type Detection & Scaffolding & Builders
+# ==============================================================================
+
+TEMPLATES = Path(__file__).resolve().parent / "templates"
+
+def detect_type(target_dir):
+    p = Path(target_dir)
+    if (p / "design-system.json").exists():
+        return "design-system"
+    if (p / "canvas.json").exists():
+        return "design"
+    if (p / "deck.json").exists():
+        return "slides"
+    return None
+
+
+def _write_file(path: Path, content: str, overwrite=False):
+    if path.exists() and not overwrite:
+        print_warn(f"已存在，跳过：{path}")
+        return False
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+    print_ok(f"已创建：{path}")
+    return True
+
+
+def _copy_template(name: str, dest: Path, overwrite=False):
+    return _write_file(dest, (TEMPLATES / name).read_text(encoding="utf-8"), overwrite)
+
+
+def init_canvas(target_dir):
+    p = Path(target_dir)
+    print(f"\n{BOLD}{CYAN}初始化 Design Canvas：{RESET}{p}")
+    canvas_json = {
+        "v": 3,
+        "title": "新设计稿",
+        "launch": {"view": "canvas"},
+        "pages": [],
+        "boards": {"Main.dc.html": {"x": 0, "y": 0, "w": 960, "h": 600, "title": "Main", "is_interactive": True}},
+        "order": ["Main.dc.html"],
+        "notes": {},
+        "designSystems": [],
+    }
+    _write_file(p / "canvas.json", json.dumps(canvas_json, ensure_ascii=False, indent=2) + "\n")
+    _copy_template("board.html", p / "Main.dc.html")
+    _copy_template("support.js", p / "support.js")
+    print(f"\n下一步：编辑画板后运行 {BOLD}python3 tools/validator.py check {p}{RESET}")
+
+
+def init_deck(target_dir):
+    p = Path(target_dir)
+    print(f"\n{BOLD}{CYAN}初始化 Slides Deck：{RESET}{p}")
+    deck_json = {
+        "v": 4,
+        "lists": "css",
+        "title": "新演示文稿",
+        "order": ["cover"],
+        "cover": "cover",
+        "sections": {},
+        "faces": {
+            "source-sans-3": {
+                "family": "Source Sans 3",
+                "href": "https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap",
+            }
+        },
+        "designSystems": [],
+    }
+    _write_file(p / "deck.json", json.dumps(deck_json, ensure_ascii=False, indent=2) + "\n")
+    _copy_template("cover.html", p / "slides" / "cover.html")
+    build_player(p)
+    print(f"\n下一步：写完各页后运行 {BOLD}python3 tools/validator.py check {p}{RESET}，再 {BOLD}build-player{RESET} 刷新播放器")
+
+
+def init_design_system(target_dir):
+    p = Path(target_dir)
+    print(f"\n{BOLD}{CYAN}初始化 Design System：{RESET}{p}")
+    ds_json = {"title": "新设计系统", "namespace": "ods", "description": "一句话说明这套系统的定位。"}
+    _write_file(p / "design-system.json", json.dumps(ds_json, ensure_ascii=False, indent=2) + "\n")
+    tokens_json = {
+        "color": {
+            "themes": [{"id": "light"}],
+            "tokens": [
+                {"name": "bg-000", "value": "#faf9f5", "usage": "页面背景"},
+                {"name": "ink-000", "value": "#141413", "usage": "主文字"},
+                {"name": "accent", "value": "#c2410c", "usage": "强调色"},
+                {"name": "border", "value": "#eaecf0", "usage": "描边与分隔线"},
+            ],
+        },
+        "spacing": {"tokens": [
+            {"name": "space-1", "value": 8, "usage": "最小间距"},
+            {"name": "space-2", "value": 16, "usage": "元素内间距"},
+            {"name": "space-3", "value": 24, "usage": "卡片间距"},
+        ]},
+        "radius": {"tokens": [{"name": "radius-md", "value": 16, "usage": "卡片圆角"}]},
+        "type": {
+            "families": {"sans": "'Source Sans 3', system-ui, sans-serif"},
+            "groups": [
+                {"name": "Text", "family": "sans", "styles": [
+                    {"name": "heading", "fontSize": 32, "fontWeight": 600, "lineHeight": 1.25, "usage": "标题"},
+                    {"name": "body", "fontSize": 22, "fontWeight": 400, "lineHeight": 1.5, "usage": "正文"},
+                ]}
+            ],
+        },
+    }
+    _write_file(p / "tokens.json", json.dumps(tokens_json, ensure_ascii=False, indent=2) + "\n")
+    _write_file(p / "README.md", "# 新设计系统\n\n品牌手册：用祈使句写 token 用法规则（例如「正文用 `body`；强调色只用 `accent`」）。\n")
+    build_tokens(p)
+    print(f"\n下一步：扩充 tokens 后运行 {BOLD}python3 tools/validator.py check {p}{RESET}，再 {BOLD}build-tokens{RESET} 重新编译")
+
+
+# ------------------------------------------------------------------ build-tokens
+
+_NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$")
+_LENGTH_RE = re.compile(r"^(?:\d*\.?\d+)(?:px|rem|em|%)$")
+
+def _clean_var_name(name):
+    n = name.lstrip("-").lstrip(".")
+    return n.replace(".", "\\.")
+
+def _length_css(value, warn, ctx):
+    if isinstance(value, (int, float)):
+        return f"{value}px"
+    if isinstance(value, str):
+        v = value.strip()
+        if _LENGTH_RE.match(v) or v == "0":
+            return v
+        try:
+            f = float(v)
+            return f"{f}px"
+        except ValueError:
+            pass
+    warn.append(f"{ctx}：非法长度值 {value!r}，已丢弃")
+    return None
+
+def _color_css(value, by_name, warn, ctx, cur_name=None):
+    if not isinstance(value, str):
+        warn.append(f"{ctx}：颜色值必须是字符串，已丢弃 {value!r}")
+        return None
+    v = value.strip()
+    if re.match(r"^\{[A-Za-z0-9_.-]+\}$", v):
+        target = v[1:-1]
+        if cur_name is not None and target == cur_name:
+            warn.append(f"{ctx}：alias 指向自己，已丢弃")
+            return None
+        if target not in by_name:
+            warn.append(f"{ctx}：alias 指向不存在的 token '{target}'，已丢弃")
+            return None
+        return f"var(--{_clean_var_name(target)})"
+    if re.match(r"^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$", v):
+        return v.lower()
+    if re.match(r"^(rgb|rgba|hsl|hsla|oklch|oklab|lab|lch|color)\([0-9a-zA-Z%.#, \\t-]+\)$", v):
+        return v
+    warn.append(f"{ctx}：非法颜色值 {v!r}，已丢弃")
+    return None
+
+def compile_tokens(tokens):
+    """tokens.json -> tokens.css per OpenDesignKit format spec. Returns (css, warnings)."""
+    warn = []
+    out = []
+    if not isinstance(tokens, dict):
+        return None, ["tokens.json 根必须是对象"]
+
+    color_sec = tokens.get("color", {})
+    themes = color_sec.get("themes") or [{"id": "light"}]
+    theme_ids = [t.get("id") for t in themes if isinstance(t, dict) and t.get("id")]
+    if not theme_ids:
+        theme_ids = ["light"]
+    first = theme_ids[0]
+
+    by_name = {}
+    for t in color_sec.get("tokens", []) or []:
+        if isinstance(t, dict) and t.get("name"):
+            by_name[t["name"]] = t
+
+    def token_css(t, theme_id):
+        name = t.get("name", "")
+        ctx = f"color token '{name}'"
+        if not _NAME_RE.match(name):
+            warn.append(f"{ctx}：名字不符合规范，已丢弃")
+            return None
+        raw = t.get("value")
+        if isinstance(raw, dict):
+            val = raw.get(theme_id, raw.get(first))
+        else:
+            val = raw
+        if val is None:
+            return None
+        return _color_css(val, by_name, warn, ctx, cur_name=name)
+
+    # first theme block
+    lines = [f":root, [data-theme=\"{first}\"] {{"]
+    for name, t in by_name.items():
+        css = token_css(t, first)
+        if css:
+            lines.append(f"  --{_clean_var_name(name)}: {css};")
+    shadow_sec = tokens.get("shadow", {})
+    for t in (shadow_sec.get("tokens") or []):
+        name, ctx = t.get("name", ""), "shadow token"
+        if isinstance(name, str) and _NAME_RE.match(name):
+            val = t.get("value")
+            val = val.get(first) if isinstance(val, dict) else val
+            if isinstance(val, str) and len(val) <= 400 and "url(" not in val and "var(" not in val:
+                lines.append(f"  --{_clean_var_name(name)}: {val};")
+            else:
+                warn.append(f"shadow token '{name}'：非法值，已丢弃")
+    lines.append("}")
+    out.append("\n".join(lines))
+
+    # other themes
+    for tid in theme_ids[1:]:
+        lines = [f"[data-theme=\"{tid}\"] {{"]
+        for name, t in by_name.items():
+            css = token_css(t, tid)
+            if css:
+                lines.append(f"  --{_clean_var_name(name)}: {css};")
+        lines.append("}")
+        out.append("\n".join(lines))
+
+    # spacing / radius / other families
+    root_vars = []
+    for fam in ("spacing", "radius"):
+        for t in (tokens.get(fam, {}).get("tokens") or []):
+            name = t.get("name", "")
+            if not (isinstance(name, str) and _NAME_RE.match(name)):
+                warn.append(f"{fam} token '{name}'：名字不符合规范，已丢弃")
+                continue
+            css = _length_css(t.get("value"), warn, f"{fam} token '{name}'")
+            if css:
+                root_vars.append(f"  --{_clean_var_name(name)}: {css};")
+    for fam_key, fam in tokens.items():
+        if fam_key in ("color", "spacing", "radius", "shadow", "type") or not isinstance(fam, dict):
+            continue
+        for t in (fam.get("tokens") or [])[:60]:
+            name = t.get("name", "")
+            if isinstance(name, str) and _NAME_RE.match(name) and isinstance(t.get("value"), str) and len(t["value"]) <= 200:
+                root_vars.append(f"  --{_clean_var_name(name)}: {t['value']};")
+
+    type_sec = tokens.get("type", {})
+    for key, stack in (type_sec.get("families") or {}).items():
+        if isinstance(stack, str) and len(stack) <= 200:
+            root_vars.append(f"  --font-{key}: {stack};")
+    if root_vars:
+        out.append(":root {\n" + "\n".join(root_vars) + "\n}")
+
+    # text styles
+    for group in (type_sec.get("groups") or []):
+        g_family = group.get("family")
+        for st in (group.get("styles") or []):
+            name = st.get("name", "")
+            if not (isinstance(name, str) and _NAME_RE.match(name)):
+                warn.append(f"文字样式 '{name}'：名字不符合规范，已丢弃")
+                continue
+            fs = _length_css(st.get("fontSize"), warn, f"样式 '{name}'.fontSize")
+            if not fs:
+                continue
+            decls = [f"  font-size: {fs};"]
+            if st.get("fontWeight") is not None:
+                decls.append(f"  font-weight: {st['fontWeight']};")
+            lh = st.get("lineHeight")
+            if lh is not None:
+                lh_css = lh if isinstance(lh, (int, float)) and lh < 10 else _length_css(lh, warn, f"样式 '{name}'.lineHeight")
+                if lh_css:
+                    decls.append(f"  line-height: {lh_css};")
+            if st.get("letterSpacing") is not None:
+                ls = _length_css(st["letterSpacing"], warn, f"样式 '{name}'.letterSpacing")
+                if ls:
+                    decls.append(f"  letter-spacing: {ls};")
+            fam = st.get("family") or g_family
+            if fam:
+                stack = (type_sec.get("families") or {}).get(fam)
+                if stack:
+                    decls.append(f"  font-family: {stack};")
+            out.append(f".{name} {{\n" + "\n".join(decls) + "\n}")
+
+    # @font-face
+    for f in (type_sec.get("fonts") or []):
+        fam, file = f.get("family"), f.get("file")
+        if not (fam and file):
+            warn.append("type.fonts entry 缺少 family/file，已跳过")
+            continue
+        src = file if "/" in file else f"fonts/{file}"
+        decls = [f"  font-family: {fam};", f'  src: url("{src}");']
+        if f.get("weight") is not None:
+            decls.append(f"  font-weight: {f['weight']};")
+        if f.get("style") is not None:
+            decls.append(f"  font-style: {f['style']};")
+        out.append("@font-face {\n" + "\n".join(decls) + "\n}")
+
+    return "\n\n".join(out) + "\n", list(dict.fromkeys(warn))
+
+
+def build_tokens(target_dir):
+    p = Path(target_dir)
+    print(f"\n{BOLD}{CYAN}编译 Design System tokens：{RESET}{p}")
+    tokens_path = p / "tokens.json"
+    if not tokens_path.exists():
+        print_err("tokens.json 不存在")
+        return 1
+    try:
+        tokens = json.loads(tokens_path.read_text(encoding="utf-8"))
+    except Exception as e:
+        print_err(f"tokens.json JSON 解析失败：{e}")
+        return 1
+    css, warns = compile_tokens(tokens)
+    if css is None:
+        for w in warns:
+            print_err(w)
+        return 1
+    out_path = p / "tokens.css"
+    out_path.write_text(css, encoding="utf-8")
+    for w in warns:
+        print_warn(w)
+    print_ok(f"已生成：{out_path}（{len(css.splitlines())} 行）")
+    return 0
+
+
+# ------------------------------------------------------------------ build-player
+
+def build_player(target_dir):
+    p = Path(target_dir)
+    print(f"\n{BOLD}{CYAN}生成 Slides 播放器：{RESET}{p}")
+    deck_path = p / "deck.json"
+    if not deck_path.exists():
+        print_err("deck.json 不存在")
+        return 1
+    try:
+        deck = json.loads(deck_path.read_text(encoding="utf-8"))
+    except Exception as e:
+        print_err(f"deck.json JSON 解析失败：{e}")
+        return 1
+    notes = {}
+    for slide_id in deck.get("order", []):
+        sf = p / "slides" / f"{slide_id}.html"
+        if not sf.exists():
+            continue
+        m = re.search(r"<aside[^>]*>([\s\S]*?)</aside>", sf.read_text(encoding="utf-8"), re.IGNORECASE)
+        if m:
+            text = re.sub(r"<[^>]+>", " ", m.group(1))
+            text = re.sub(r"\s+", " ", text).strip()
+            if text:
+                notes[slide_id] = text
+    payload = dict(deck)
+    payload["__notes__"] = notes
+    tpl = (TEMPLATES / "player.html").read_text(encoding="utf-8")
+    html = tpl.replace("__DECK_JSON__", json.dumps(payload, ensure_ascii=False))
+    out_path = p / "player.html"
+    out_path.write_text(html, encoding="utf-8")
+    print_ok(f"已生成：{out_path}（含 {len(notes)} 页备注；浏览器直接打开，←→ 翻页，S 讲稿，O 目录）")
+    return 0
+
+
+# ==============================================================================
 # CLI Entrypoint
 # ==============================================================================
 
 def main():
+    usage = f"""{BOLD}OpenDesignKit Validator CLI{RESET}
+Usage:
+  校验（自动识别类型，也可用 check-slides / check-design / check-design-system 显式指定）
+    python tools/validator.py check <dir>
+  脚手架
+    python tools/validator.py init-canvas <dir>          # 画板骨架（canvas.json + Main.dc.html + support.js）
+    python tools/validator.py init-deck <dir>            # 幻灯片骨架（deck.json + slides/cover + 播放器）
+    python tools/validator.py init-design-system <dir>   # 设计系统骨架（tokens + 品牌手册 + tokens.css）
+  构建
+    python tools/validator.py build-tokens <system-dir>  # tokens.json -> tokens.css
+    python tools/validator.py build-player <deck-dir>    # 重新生成含最新备注的 player.html
+"""
     if len(sys.argv) < 3:
-        print(f"{BOLD}OpenDesignKit Validator CLI{RESET}")
-        print("Usage:")
-        print("  python tools/validator.py check-slides <deck-dir>")
-        print("  python tools/validator.py check-design <canvas-dir>")
-        print("  python tools/validator.py check-design-system <system-dir>")
+        print(usage)
         sys.exit(1)
 
     cmd = sys.argv[1]
     target_dir = sys.argv[2]
 
-    if not os.path.isdir(target_dir):
-        print_err(f"Directory not found: {target_dir}")
-        sys.exit(1)
-
-    if cmd == "check-slides":
-        problems, warnings = validate_slides(target_dir)
-    elif cmd == "check-design":
-        problems, warnings = validate_design(target_dir)
-    elif cmd == "check-design-system":
-        problems, warnings = validate_design_system(target_dir)
+    if cmd == "check":
+        if not os.path.isdir(target_dir):
+            print_err(f"Directory not found: {target_dir}")
+            sys.exit(1)
+        kind = detect_type(target_dir)
+        if kind is None:
+            print_err("无法识别类型：目录中缺少 deck.json / canvas.json / design-system.json")
+            sys.exit(1)
+        problems, warnings = {
+            "slides": validate_slides,
+            "design": validate_design,
+            "design-system": validate_design_system,
+        }[kind](target_dir)
+    elif cmd in ("check-slides", "check-design", "check-design-system"):
+        if not os.path.isdir(target_dir):
+            print_err(f"Directory not found: {target_dir}")
+            sys.exit(1)
+        problems, warnings = {
+            "check-slides": validate_slides,
+            "check-design": validate_design,
+            "check-design-system": validate_design_system,
+        }[cmd](target_dir)
+    elif cmd == "init-canvas":
+        sys.exit(init_canvas(target_dir) or 0)
+    elif cmd == "init-deck":
+        sys.exit(init_deck(target_dir) or 0)
+    elif cmd == "init-design-system":
+        sys.exit(init_design_system(target_dir) or 0)
+    elif cmd == "build-tokens":
+        if not os.path.isdir(target_dir):
+            print_err(f"Directory not found: {target_dir}")
+            sys.exit(1)
+        sys.exit(build_tokens(target_dir))
+    elif cmd == "build-player":
+        if not os.path.isdir(target_dir):
+            print_err(f"Directory not found: {target_dir}")
+            sys.exit(1)
+        sys.exit(build_player(target_dir))
     else:
         print_err(f"Unknown command: {cmd}")
+        print(usage)
         sys.exit(1)
 
     # Output Summary
