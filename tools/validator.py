@@ -83,6 +83,14 @@ def validate_slides(deck_dir):
             if start_id and start_id not in order:
                 problems.append(f"Section '{s_id}' start slide '{start_id}' not found in 'order'.")
 
+    faces = deck_meta.get("faces", {})
+    if not isinstance(faces, dict):
+        problems.append("deck.json 'faces' must be an object.")
+    else:
+        for f_key, f_data in faces.items():
+            if not isinstance(f_data, dict) or not f_data.get("family") or not f_data.get("href"):
+                warnings.append(f"deck.json faces['{f_key}'] should declare both 'family' and 'href'.")
+
     # Check slides directory
     slides_dir = deck_path / "slides"
     if not slides_dir.exists():
@@ -118,6 +126,16 @@ def validate_slides(deck_dir):
             # check inline style
             if 'style=' not in attrs:
                 warnings.append(f"Slide '{slide_id}.html' <section> should declare inline layout styles.")
+            else:
+                style_match = re.search(r'style\s*=\s*("([^"]*)"|\'([^\']*)\')', attrs)
+                style_val = (style_match.group(2) or style_match.group(3) or "") if style_match else ""
+                if '1920px' not in style_val:
+                    warnings.append(f"Slide '{slide_id}.html' should set width:1920px (16:9 stage).")
+                if '1080px' not in style_val:
+                    warnings.append(f"Slide '{slide_id}.html' should set height:1080px (16:9 stage).")
+            # speech notes
+            if not re.search(r'<aside[^>]*>[\s\S]*?</aside>', content, re.IGNORECASE):
+                warnings.append(f"Slide '{slide_id}.html' has no <aside> speech notes.")
 
         # Check for disallowed tags
         for tag in DISALLOWED_SLIDE_TAGS:
@@ -237,6 +255,49 @@ def validate_design(canvas_dir):
         if b not in order:
             warnings.append(f"Board '{b}' in 'boards' is not listed in 'order'.")
 
+    # launch view
+    launch = canvas_meta.get("launch")
+    if launch is not None:
+        view = launch.get("view") if isinstance(launch, dict) else None
+        if view not in ("canvas", "focused"):
+            warnings.append(f"canvas.json launch.view '{view}' should be 'canvas' or 'focused'.")
+        if view == "focused" and not launch.get("file"):
+            problems.append("canvas.json launch.view 'focused' requires a 'file' entry.")
+
+    # pages must be a list
+    if "pages" in canvas_meta and not isinstance(canvas_meta["pages"], list):
+        problems.append("canvas.json 'pages' must be an array.")
+
+    # notes shape
+    notes = canvas_meta.get("notes", {})
+    if not isinstance(notes, dict):
+        problems.append("canvas.json 'notes' must be an object.")
+    else:
+        for n_id, n_data in notes.items():
+            if not isinstance(n_data, dict):
+                problems.append(f"canvas.json note '{n_id}' must be an object.")
+                continue
+            if not isinstance(n_data.get("x"), (int, float)) or not isinstance(n_data.get("y"), (int, float)):
+                warnings.append(f"canvas.json note '{n_id}' should declare numeric x/y.")
+            if not isinstance(n_data.get("text"), str) or not n_data.get("text"):
+                warnings.append(f"canvas.json note '{n_id}' should declare non-empty 'text'.")
+
+    # guides shape
+    for b_file, frame in boards.items():
+        if not isinstance(frame, dict):
+            continue
+        guides = frame.get("guides")
+        if guides is None:
+            continue
+        if not isinstance(guides, list):
+            problems.append(f"Board '{b_file}' guides must be an array.")
+            continue
+        if len(guides) > 6:
+            warnings.append(f"Board '{b_file}' has more than 6 guides; extra ones are ignored by editors.")
+        for g in guides[:6]:
+            if not isinstance(g, dict) or g.get("kind") not in ("columns", "rows", "grid"):
+                problems.append(f"Board '{b_file}' has an invalid guide entry (kind must be columns/rows/grid).")
+
     return problems, warnings
 
 # ==============================================================================
@@ -275,21 +336,72 @@ def validate_design_system(ds_dir):
         problems.append("tokens.json not found in design system directory.")
     else:
         try:
-            with open(tokens_json_path, 'r', encoding='utf-8') as f:
-                tokens = json.load(f)
-            # Check color tokens format
+            tokens = json.loads(tokens_json_path.read_text(encoding="utf-8"))
             color_sec = tokens.get("color", {})
             if "tokens" in color_sec:
                 if not isinstance(color_sec["tokens"], list):
                     problems.append("tokens.json 'color.tokens' must be a list of token objects, not a dict/map.")
                 else:
+                    if len(color_sec.get("themes") or []) > 8:
+                        warnings.append("tokens.json: more than 8 color themes; extras are ignored.")
+                    if len(color_sec["tokens"]) > 600:
+                        warnings.append("tokens.json: more than 600 color tokens; extras are ignored.")
+                    by_name = {t.get("name"): t for t in color_sec["tokens"] if isinstance(t, dict)}
                     for t in color_sec["tokens"]:
-                        if not t.get("name"):
+                        if not isinstance(t, dict):
+                            problems.append(f"tokens.json color token entry is not an object: {t}")
+                            continue
+                        name = t.get("name")
+                        if not name:
                             problems.append(f"Color token missing 'name': {t}")
-                        if not t.get("value"):
-                            problems.append(f"Color token '{t.get('name')}' missing 'value'.")
+                            continue
+                        if not _NAME_RE.match(str(name)):
+                            problems.append(f"Color token '{name}': name violates ^[A-Za-z0-9][A-Za-z0-9_.-]{{0,63}}$")
+                        values = t.get("value")
+                        theme_ids = [th.get("id") for th in (color_sec.get("themes") or []) if isinstance(th, dict)] or ["light"]
+                        per_theme = values if isinstance(values, dict) else {theme_ids[0]: values}
+                        for tid in per_theme:
+                            if tid not in theme_ids:
+                                warnings.append(f"Color token '{name}': value references unknown theme '{tid}'.")
+                            _color_css(per_theme[tid], by_name, warnings, f"color token '{name}' ({tid})", cur_name=str(name))
+            for fam in ("spacing", "radius"):
+                sec = tokens.get(fam, {})
+                if "tokens" in sec and not isinstance(sec["tokens"], list):
+                    problems.append(f"tokens.json '{fam}.tokens' must be a list.")
+                elif isinstance(sec, dict):
+                    for t in (sec.get("tokens") or []):
+                        if isinstance(t, dict):
+                            if not _NAME_RE.match(str(t.get("name", ""))):
+                                problems.append(f"{fam} token '{t.get('name')}': name violates naming rule.")
+                            _length_css(t.get("value"), warnings, f"{fam} token '{t.get('name')}'")
+            type_sec = tokens.get("type", {})
+            if not isinstance(type_sec, dict):
+                problems.append("tokens.json 'type' must be an object.")
+            else:
+                for key, stack in (type_sec.get("families") or {}).items():
+                    if not isinstance(stack, str) or len(stack) > 200 or any(c in stack for c in ";{}<>\\"):
+                        problems.append(f"type.families['{key}'] must be a CSS font-family stack <=200 chars without ;{{}}<>\\.")
+                for g in (type_sec.get("groups") or []):
+                    if not isinstance(g, dict):
+                        continue
+                    for st in (g.get("styles") or []):
+                        sname = st.get("name", "")
+                        if not _NAME_RE.match(str(sname)):
+                            problems.append(f"Text style '{sname}': name violates naming rule.")
+                            continue
+                        _length_css(st.get("fontSize"), warnings, f"style '{sname}'.fontSize")
+                        if st.get("fontSize") is None:
+                            problems.append(f"Text style '{sname}' missing 'fontSize'.")
+                for f in (type_sec.get("fonts") or []):
+                    if not isinstance(f, dict) or not f.get("family") or not f.get("file"):
+                        warnings.append(f"type.fonts entry needs 'family' and 'file': {f}")
+                        continue
+                    ffile = f["file"]
+                    fpath = ds_path / (ffile if "/" in ffile else f"fonts/{ffile}")
+                    if not fpath.exists():
+                        warnings.append(f"Font file declared but missing on disk: {fpath}")
         except Exception as e:
-            problems.append(f"tokens.json contains invalid JSON: {e}")
+            problems.append(f"tokens.json could not be parsed: {e}")
 
     # Check README.md
     readme_path = ds_path / "README.md"
