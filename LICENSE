@@ -2,6 +2,11 @@ MIT License
 
 Copyright (c) 2026 OpenClaudeDesign contributors
 
+本许可证仅覆盖本项目的原创部分（tools/、examples/、README、NOTICE 及其他非 skills/ 路径文件）。
+skills/ 目录下的改编材料另受 BaoCut Community License 约束，
+完整文本与归属说明见 NOTICE.md 与 licenses/baocut-community-license.txt。
+（范围声明不改变本许可证授予上述原创部分的权利。）
+
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights

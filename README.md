@@ -71,9 +71,11 @@ python3 tools/validator.py check-design-system examples/demo-design-system
 
 ## 致谢与来源
 
-- 上游：[JimLiu/baocut](https://github.com/JimLiu/baocut) —— commit `7aa049e8` 引入 Claude Design（Design Canvas + Design System）与 Claude Slides 集成
+- 上游：[JimLiu/baocut](https://github.com/JimLiu/baocut) —— commit `7aa049e8` 引入 Claude Design（Design Canvas + Design System）与 Claude Slides 集成。`skills/` 目录为该提交对应内置 Skill 的**修改版**（通用化改造），非官方发布物。
 - 背景：[@dotey 的推文讨论](https://x.com/dotey/status/2109482425722057154)
+- 本仓库与 Anthropic 无隶属或背书关系。
 
 ## License
 
-MIT
+- `tools/`、`examples/`、文档：**MIT**（[LICENSE](LICENSE)）
+- `skills/`（改编自上游）：**BaoCut Community License v1.0**（[licenses/baocut-community-license.txt](licenses/baocut-community-license.txt)），允许非商业免费共享与修改，商业化需上游书面授权；详见 [NOTICE.md](NOTICE.md)
