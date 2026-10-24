@@ -60,8 +60,10 @@ python3 tools/validator.py check-design-system examples/demo-design-system
 ## 快速体验示例
 
 - `examples/demo-slides/`：浏览器打开任意 `slides/*.html` 即可全屏查看；
-- `examples/demo-design/`：`Main.dc.html` 是一块**可交互**画板（点击右下角色板切换主题色）；
+- `examples/demo-design/`：**双击 `Main.dc.html` 即可在浏览器预览可交互画板**——仓库自带独立实现的轻量预览运行时 `support.js`（{{ 插值 }}、sc-for/sc-if、onClick 事件、DCLogic 状态）：点击右下角色板可实时切换主题色；
 - `examples/demo-design-system/`：`README.md` 即品牌手册，`tokens.json` 是机器可读的 token 源。
+
+> 给自己生成的画板加预览：把 `examples/demo-design/support.js` 复制到画板同级目录即可（`<script src="./support.js">` 已是格式标准钩子）。兼容编辑器存在时优先用编辑器自身的运行时。
 
 ## 设计原则
 
