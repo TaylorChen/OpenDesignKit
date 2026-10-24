@@ -1,0 +1,19 @@
+{
+  "v": 4,
+  "lists": "css",
+  "title": "OpenClaudeDesign 产品发布会",
+  "order": ["cover", "intro", "conclusion"],
+  "cover": "cover",
+  "sections": {
+    "welcome": { "description": "产品定位与核心价值", "start": "cover" },
+    "feature": { "description": "核心架构与设计规范", "start": "intro" },
+    "future": { "description": "未来规划与生态接入", "start": "conclusion" }
+  },
+  "faces": {
+    "source-sans-3": {
+      "family": "Source Sans 3",
+      "href": "https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap"
+    }
+  },
+  "designSystems": []
+}
