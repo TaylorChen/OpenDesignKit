@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 OpenDesignKit - Lightweight Validator CLI
-Validates Claude Design canvases, Claude Slides decks, and Claude Design Systems.
+Validates Open Design canvases, Open Slides decks, and Open Design Systems.
 Zero external dependencies (Pure Python 3 standard library).
 """
 

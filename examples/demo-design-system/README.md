@@ -1,6 +1,6 @@
 # OpenDesignKit Default System
 
-默认设计系统：暖调中性色 + 橙色强调 + Source Sans 3。为 Claude Design 画板、Claude Slides 幻灯片与任何 HTML 产物提供统一的视觉语言。
+默认设计系统：暖调中性色 + 橙色强调 + Source Sans 3。为 Open Design 画板、Open Slides 幻灯片与任何 HTML 产物提供统一的视觉语言。
 
 ## 使用方式
 
