@@ -71,9 +71,17 @@ python3 tools/validator.py build-tokens my-brand          # tokens.json -> token
 
 ## 预览
 
-| 幻灯片 | 可交互画板 | 播放器 + 讲稿 |
-|---|---|---|
-| ![幻灯片封面](docs/screenshots/slides-cover.png) | ![可交互画板](docs/screenshots/design-board.png) | ![播放器讲稿](docs/screenshots/player-notes.png) |
+**幻灯片放映器**（`build-player` 生成，双击即用：← → 翻页 · S 讲稿 · O 目录 · F 全屏）：
+
+![幻灯片播放器](docs/screenshots/player-demo.gif)
+
+**可交互画板**（`support.js` 预览运行时在普通浏览器中渲染；点击右下角色板实时切换全板主题色）：
+
+![可交互画板](docs/screenshots/board-interactive.gif)
+
+| 幻灯片（浏览器直接打开） | 播放器 + 讲稿面板 |
+|---|---|
+| ![幻灯片封面](docs/screenshots/slides-cover.png) | ![播放器讲稿](docs/screenshots/player-notes.png) |
 
 ## 快速体验示例
 
