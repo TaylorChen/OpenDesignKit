@@ -1,5 +1,5 @@
 /**
- * OpenClaudeDesign — minimal preview runtime for .dc.html boards
+ * OpenDesignKit — minimal preview runtime for .dc.html boards
  * ---------------------------------------------------------------
  * Independent, dependency-free implementation of the public .dc.html
  * file-format subset, so boards can be previewed (and their declared

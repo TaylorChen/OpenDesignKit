@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
   <meta charset="utf-8">
-  <title>OpenClaudeDesign Showcase Card</title>
+  <title>OpenDesignKit Showcase Card</title>
   <script src="./support.js"></script>
 </head>
 <body>
@@ -15,7 +15,7 @@
 <div style="width: 960px; height: 600px; box-sizing: border-box; background: {{bg}}; color: {{ink}}; padding: 56px 64px; display: flex; flex-direction: column; gap: 40px; font-family: inherit">
   <!-- Header -->
   <div style="display: flex; flex-direction: column; gap: 12px">
-    <p style="margin: 0; font-size: 20px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: {{accent}}">OpenClaudeDesign</p>
+    <p style="margin: 0; font-size: 20px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: {{accent}}">OpenDesignKit</p>
     <h1 style="margin: 0; font-size: 44px; font-weight: 700; line-height: 1.15">面向全 Agent 的设计套件</h1>
     <p style="margin: 0; font-size: 22px; color: {{inkSoft}}">三个 Skill · 纯文件格式 · 零依赖校验</p>
   </div>
@@ -57,9 +57,9 @@ class Component extends DCLogic {
       ink: dark ? '#ffffff' : '#141413',
       inkSoft: dark ? '#98a2b3' : '#475467',
       pillars: [
-        { num: '01', name: 'Claude Design', desc: '画布级画板系统：.dc.html 组件 + DCLogic 状态机制，支持交互原型。' },
-        { num: '02', name: 'Claude Slides', desc: 'deck.json + 每页一个 HTML 文件，任何查看器都能直接渲染。' },
-        { num: '03', name: 'Design System', desc: 'tokens.json 单一事实源，编译为 CSS 变量供所有画板复用。' }
+        { num: '01', name: 'Open Design', desc: '画布级画板系统：.dc.html 组件 + DCLogic 状态机制，支持交互原型。' },
+        { num: '02', name: 'Open Slides', desc: 'deck.json + 每页一个 HTML 文件，任何查看器都能直接渲染。' },
+        { num: '03', name: 'Open Design System', desc: 'tokens.json 单一事实源，编译为 CSS 变量供所有画板复用。' }
       ],
       swatches: accents.map(function (c) {
         var sel = (c === picked);

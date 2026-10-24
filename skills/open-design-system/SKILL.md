@@ -1,5 +1,5 @@
 ---
-name: claude-design-system
+name: open-design-system
 description: 用户要建立或修改设计系统时用：品牌的颜色、文字样式、间距与圆角 tokens，给智能体看的品牌手册 README，bundle 与预览，标志、图标与字体。在工作目录写一个设计系统目录（design-system.json 加 tokens.json、README.md、components/、assets/、fonts/），可以从代码仓库或设计工具里的真实来源整理；图片、视频与 PDF 导入设计系统的素材库，校验通过后线程里出现设计系统卡片，用户在功能区预览与编辑；做好的设计系统可以装进设计稿。
 version: 1.0.0
 ---
@@ -36,7 +36,7 @@ index 里的 `"editing": "off"` 会关掉页面上的编辑；有它，或者有
 上限：一个设计系统 1,008 个文件、256 MiB，单个文件 ≤15 MiB。路径：相对路径，不以 `/` 开头，不含 `..`，不要点文件或工具链文件。
 
 - `README.md` 是你写的文字；页面可能会在后面追加一个 Consuming 章节和卡片 index。
-- index：`namespace` = bundle 的全局名；`libraries` 列出预览要加载的库（加 bundle 时设置；没有：`[]`）；`groups` 给素材组排序，每个 `assetGroups` entry 的 `tile`（`"l"` … `"xs"`）决定它的 tile 大小；`lastChange` `{"by","at" (ISO-8601),"via","note"}`：你做的每次改动都要设置它：`by` = 你为之工作的人（他们的名字，否则写 "Claude"），`via` = 你运行所在的界面（重新同步时：它的来源），`at` = 现在。`via` 以 "CI" 开头：表示有流水线会重新发布这个设计系统，可能覆盖在这里做的修改；编辑前先说明这一点。
+- index：`namespace` = bundle 的全局名；`libraries` 列出预览要加载的库（加 bundle 时设置；没有：`[]`）；`groups` 给素材组排序，每个 `assetGroups` entry 的 `tile`（`"l"` … `"xs"`）决定它的 tile 大小；`lastChange` `{"by","at" (ISO-8601),"via","note"}`：你做的每次改动都要设置它：`by` = 你为之工作的人（他们的名字，否则写你所用的 Agent 平台名），`via` = 你运行所在的界面（重新同步时：它的来源），`at` = 现在。`via` 以 "CI" 开头：表示有流水线会重新发布这个设计系统，可能覆盖在这里做的修改；编辑前先说明这一点。
 - `components/Cover/preview.html`：品牌手册上方的封面，每个设计系统都有，最后写：`references/cover.md`。
 - `components/bundle.js`（**一个** classic script，给 `window.<namespace>` 赋值；不用 import、不联网，不出现字面的 `</script`）、`components/bundle.css`、`components/index.d.ts`（类型即文档）、`components/<Comp>/README.md`（使用指南；第一句 = 摘要）、`components/<Comp>/preview.html`（第 1 行 `<!-- @dsCard group="Actions" height=88 -->`，接着是渲染该组件的一份小文档；它运行在 artifact 的源上，预先加载了 tokens.css、字体、bundle.css、库和 bundle；按 URL 能加载的只有 artifact 脚本 CDN、Google Fonts，以及实时渲染时设计系统自己的文件（文件：`../../<path>`；上传：`/_blob/<id>`；脚本：`./x.js`））。每个 CDN URL 都钉到确切版本（jsDelivr 或 unpkg 上的 `d3@7.9.0`、`cdn.tailwindcss.com/3.4.17`），绝不用裸名、版本范围或标签（`d3`、`d3@7`、`@latest`）。选至少已发布两周的版本。你在这次会话之前就知道的任何版本都够旧；如果去查版本，跳过最近两周内发布的。列出的 `react`、`react-dom` 18 从 jsDelivr 加载，除非放在 `components/lib/` 里（两个都放或都不放；要自带它们，用脚本复制 `references/demo.json` 里那两条 `components/lib/` entry）；其他任何库都必须是那里的文件，entry 按 format.md 写，否则预览是静态的。
 

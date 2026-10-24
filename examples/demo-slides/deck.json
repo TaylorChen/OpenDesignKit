@@ -1,7 +1,7 @@
 {
   "v": 4,
   "lists": "css",
-  "title": "OpenClaudeDesign 产品发布会",
+  "title": "OpenDesignKit 产品发布会",
   "order": ["cover", "intro", "conclusion"],
   "cover": "cover",
   "sections": {

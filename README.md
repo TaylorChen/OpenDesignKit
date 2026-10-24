@@ -1,4 +1,4 @@
-# OpenClaudeDesign
+# OpenDesignKit
 
 > 面向全 Agent 的工业级设计套件 —— 把 Claude Design / Claude Slides / Claude Design System 三大 Skill 从专有宿主中解耦，让任意 Agent 工具（Claude Code、Antigravity CLI、Cursor、Cline……）都能生成顶级设计稿与演示文稿。
 
@@ -10,20 +10,20 @@
 
 | Skill | 产物格式 | 用途 |
 |---|---|---|
-| [`claude-design`](skills/claude-design/SKILL.md) | `canvas.json` + 每块画板一个 `.dc.html` | 界面 / 网页 / 海报 / 信息图 / 原型等视觉设计稿，支持交互组件（DCLogic 状态机制） |
-| [`claude-slides`](skills/claude-slides/SKILL.md) | `deck.json` + 每页一个 HTML 文件 | 幻灯片 / 演示文稿 / 讲稿页，任何现代浏览器可直接渲染 |
-| [`claude-design-system`](skills/claude-design-system/SKILL.md) | `design-system.json` + `tokens.json` + `README.md` + components/assets/fonts | 品牌设计系统：颜色、字体、间距 tokens 与品牌手册 |
+| [`open-design`](skills/open-design/SKILL.md) | `canvas.json` + 每块画板一个 `.dc.html` | 界面 / 网页 / 海报 / 信息图 / 原型等视觉设计稿，支持交互组件（DCLogic 状态机制） |
+| [`open-slides`](skills/open-slides/SKILL.md) | `deck.json` + 每页一个 HTML 文件 | 幻灯片 / 演示文稿 / 讲稿页，任何现代浏览器可直接渲染 |
+| [`open-design-system`](skills/open-design-system/SKILL.md) | `design-system.json` + `tokens.json` + `README.md` + components/assets/fonts | 品牌设计系统：颜色、字体、间距 tokens 与品牌手册 |
 
 三者的关系：设计系统提供 **tokens 单一事实源** → 设计稿画板与幻灯片**引用** tokens → 产物全部是**纯本地文件**，无需数据库或远程服务。
 
 ## 目录结构
 
 ```
-claude-design/
+OpenDesignKit/
 ├── skills/
-│   ├── claude-design/           # 设计稿 Skill（SKILL.md + references/ 9 篇）
-│   ├── claude-design-system/    # 设计系统 Skill（SKILL.md + references/ 6 篇）
-│   └── claude-slides/           # 幻灯片 Skill（SKILL.md + references/ 4 篇）
+│   ├── open-design/           # 设计稿 Skill（SKILL.md + references/ 9 篇）
+│   ├── open-design-system/    # 设计系统 Skill（SKILL.md + references/ 6 篇）
+│   └── open-slides/           # 幻灯片 Skill（SKILL.md + references/ 4 篇）
 ├── tools/
 │   └── validator.py             # 零依赖校验器（纯 Python 3 标准库）
 ├── examples/
@@ -43,7 +43,7 @@ Skill 本质是「一份指令文档 + 参考页」，把它放进宿主的 skil
 | **Claude Code** | `cp -r skills/* ~/.claude/skills/`（或项目内 `.claude/skills/`） |
 | **Antigravity / agy CLI** | `cp -r skills/* ~/.gemini/skills/` |
 | **Cursor / Cline / 其它** | 把 `SKILL.md` 内容放进系统提示词或 rules，references/ 按相对路径随项目携带 |
-| **任意 Agent** | 在提示词中写明："做设计稿时阅读 `skills/claude-design/SKILL.md` 并遵循" |
+| **任意 Agent** | 在提示词中写明："做设计稿时阅读 `skills/open-design/SKILL.md` 并遵循" |
 
 无版权与依赖门槛：SKILL.md 与 references/ 全部是 Markdown，产物全部是 HTML/JSON。
 

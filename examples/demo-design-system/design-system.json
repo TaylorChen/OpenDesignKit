@@ -1,5 +1,5 @@
 {
-  "title": "OpenClaudeDesign Default System",
+  "title": "OpenDesignKit Default System",
   "namespace": "ocd",
-  "description": "OpenClaudeDesign 随附的默认设计系统：暖调中性色板、Source Sans 3 字体、8pt 间距刻度。可直接被画板与幻灯片引用，也可作为自定义设计系统的起点。"
+  "description": "OpenDesignKit 随附的默认设计系统：暖调中性色板、Source Sans 3 字体、8pt 间距刻度。可直接被画板与幻灯片引用，也可作为自定义设计系统的起点。"
 }

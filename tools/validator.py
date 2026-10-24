@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-OpenClaudeDesign - Lightweight Validator CLI
+OpenDesignKit - Lightweight Validator CLI
 Validates Claude Design canvases, Claude Slides decks, and Claude Design Systems.
 Zero external dependencies (Pure Python 3 standard library).
 """
@@ -304,7 +304,7 @@ def validate_design_system(ds_dir):
 
 def main():
     if len(sys.argv) < 3:
-        print(f"{BOLD}OpenClaudeDesign Validator CLI{RESET}")
+        print(f"{BOLD}OpenDesignKit Validator CLI{RESET}")
         print("Usage:")
         print("  python tools/validator.py check-slides <deck-dir>")
         print("  python tools/validator.py check-design <canvas-dir>")
