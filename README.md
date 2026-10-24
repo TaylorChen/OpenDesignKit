@@ -1,3 +1,5 @@
+[中文](README.md) | **English**
+
 # OpenDesignKit
 
 > 面向全 Agent 的工业级设计套件 —— 把 Claude Design / Claude Slides / Claude Design System 三大 Skill 从专有宿主中解耦，让任意 Agent 工具（Claude Code、Antigravity CLI、Cursor、Cline……）都能生成顶级设计稿与演示文稿。
@@ -47,17 +49,31 @@ Skill 本质是「一份指令文档 + 参考页」，把它放进宿主的 skil
 
 无版权与依赖门槛：SKILL.md 与 references/ 全部是 Markdown，产物全部是 HTML/JSON。
 
-## 校验（推荐的工作流闭环）
+## 校验与工具链（推荐的工作流闭环）
 
-每个 Skill 的工作流都是「写文件 → 校验到零错误 → 交付」。用随附的零依赖校验器：
+每个 Skill 的工作流都是「写文件 → 校验到零错误 → 交付」。随附的零依赖 CLI（纯 Python 3 标准库）：
 
 ```bash
-python3 tools/validator.py check-slides        examples/demo-slides
-python3 tools/validator.py check-design        examples/demo-design
-python3 tools/validator.py check-design-system examples/demo-design-system
+# 校验（自动识别 deck / canvas / design-system；也可用 check-slides 等显式命令）
+python3 tools/validator.py check examples/demo-slides
+
+# 脚手架：生成开箱即过校验的骨架
+python3 tools/validator.py init-deck my-deck               # deck.json + 封面页 + 播放器
+python3 tools/validator.py init-canvas my-canvas           # canvas.json + 画板 + support.js
+python3 tools/validator.py init-design-system my-brand    # tokens + 品牌手册 + tokens.css
+
+# 构建
+python3 tools/validator.py build-player my-deck           # 重新生成含最新讲稿的放映器
+python3 tools/validator.py build-tokens my-brand          # tokens.json -> tokens.css
 ```
 
-三个示例当前均为 **0 错误 0 警告**。校验器检查：JSON 结构与版本、order/board 完整性、画板必备元素（`<x-dc>`、DCLogic 脚本、`data-props`）、禁用标签（iframe 等）、`$preview` 与画框尺寸一致性等。
+播放器：双击生成的 `player.html` 即可放映——←→ 翻页、`S` 讲稿、`O` 目录、`F` 全屏；支持 `?n=2`、`?notes=1` 参数。三个示例当前均为 **0 错误 0 警告**。校验器检查：JSON 结构与版本、order/board 完整性、画板必备元素（`<x-dc>`、DCLogic 脚本、`data-props`）、禁用标签、`$preview` 与画框一致性、1920×1080 舞台、token 命名/取值合法性等。
+
+## 预览
+
+| 幻灯片 | 可交互画板 | 播放器 + 讲稿 |
+|---|---|---|
+| ![幻灯片封面](docs/screenshots/slides-cover.png) | ![可交互画板](docs/screenshots/design-board.png) | ![播放器讲稿](docs/screenshots/player-notes.png) |
 
 ## 快速体验示例
 
