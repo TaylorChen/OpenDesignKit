@@ -2,6 +2,8 @@
 
 > 面向全 Agent 的工业级设计套件 —— 把 Claude Design / Claude Slides / Claude Design System 三大 Skill 从专有宿主中解耦，让任意 Agent 工具（Claude Code、Antigravity CLI、Cursor、Cline……）都能生成顶级设计稿与演示文稿。
 
+**作者**：[TaylorChen（AI即世界）](https://github.com/TaylorChen) · AI Agent 工程师
+
 源自 [JimLiu/baocut](https://github.com/JimLiu/baocut) commit [`7aa049e8`](https://github.com/JimLiu/baocut/commit/7aa049e8) 中的内置 Skill，经通用化改造：**移除宿主专有依赖，改为纯文件格式 + 可选工具适配**，任何能读写本地文件的 Agent 都可以使用。
 
 ## 三个 Skill
