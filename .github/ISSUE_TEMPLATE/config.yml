@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 使用问题/讨论
+    url: https://github.com/TaylorChen/OpenDesignKit/discussions
+    about: 问答与想法请到 Discussions

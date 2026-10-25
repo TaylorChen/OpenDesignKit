@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <title>Board</title>
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font-family: 'Source Sans 3', system-ui, sans-serif; }
+  </style>
+</helmet>
+<div style="width: 960px; height: 600px; box-sizing: border-box; background: #faf9f5; color: #141413; padding: 56px 64px; display: flex; flex-direction: column; gap: 24px">
+  <h1 style="margin: 0; font-size: 44px; font-weight: 700">{{ title }}</h1>
+  <p style="margin: 0; font-size: 22px; color: #475467">在此开始你的设计。</p>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"title":{"editor":"text","default":"标题"},"$preview":{"width":960,"height":600}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { title: this.props.title ?? '标题' };
+  }
+}
+</script>
+</body>
+</html>

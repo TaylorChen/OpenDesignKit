@@ -1,0 +1,17 @@
+LICENSE
+NOTICE.md
+README.md
+pyproject.toml
+odk/__init__.py
+odk/cli.py
+odk/core.py
+odk/templates/board.html
+odk/templates/cover.html
+odk/templates/player.html
+odk/templates/support.js
+opendesignkit.egg-info/PKG-INFO
+opendesignkit.egg-info/SOURCES.txt
+opendesignkit.egg-info/dependency_links.txt
+opendesignkit.egg-info/entry_points.txt
+opendesignkit.egg-info/top_level.txt
+tests/test_core.py

@@ -3,6 +3,25 @@
 All notable changes to this project are documented in this file.
 Format based on [Keep a Changelog](https://keepachangelog.com/); versioning: semver.
 
+## [0.1.1] - 2026-10-25
+
+### Added
+- **`odk` unified CLI** (pip-installable, `pipx install opendesignkit`): `init deck|canvas|system`, `check [--json]`, `build player|tokens`, `serve`, `export-pdf`
+- `odk serve`: local preview server enabling `dc-import` child boards over http
+- `odk export-pdf`: per-slide 16:9 PDF export via headless Chrome (`--no-pdf-header-footer`)
+- `odk check --json`: machine-readable validation output for agents/CI
+- Local quality gate: `.githooks/pre-commit` (validates examples + runs unit tests)
+- Community infrastructure: issue/PR templates, CODE_OF_CONDUCT, SECURITY policy
+- Unit test suite (`tests/test_core.py`): injection escapes, type detection, token compiler edges
+
+### Fixed
+- **Security**: `build-player` inlined JSON is now escaped (`</` → `<\/`, `<!--` → `<\u0021--`); a malicious deck.json can no longer break out of the player's `<script>` block (regression-tested)
+- `check --json` output is now pure JSON (validator banners suppressed)
+
+### Changed
+- Engine moved from `tools/validator.py` to `odk/core.py`; the old path remains a compatible shim
+- Templates canonical location: `odk/templates/` (shipped inside the wheel)
+
 ## [0.1.0] - 2026-10-25
 
 First public release.

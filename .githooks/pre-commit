@@ -1,0 +1,10 @@
+#!/bin/sh
+# OpenDesignKit pre-commit: 校验三个示例必须全绿（本地质量门禁）
+cd "$(git rev-parse --show-toplevel)"
+fail=0
+for d in examples/demo-slides examples/demo-design examples/demo-design-system; do
+  python3 tools/validator.py check "$d" >/dev/null 2>&1 || { echo "✖ $d 校验未通过（commit 已阻止）"; fail=1; }
+done
+python3 -m unittest discover -s tests >/dev/null 2>&1 || { echo "✖ 单元测试未通过（commit 已阻止）"; fail=1; }
+if [ $fail -eq 0 ]; then echo "✔ pre-commit: 示例校验 + 单测全绿"; fi
+exit $fail

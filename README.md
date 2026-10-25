@@ -49,22 +49,36 @@ Skill 本质是「一份指令文档 + 参考页」，把它放进宿主的 skil
 
 无版权与依赖门槛：SKILL.md 与 references/ 全部是 Markdown，产物全部是 HTML/JSON。
 
-## 校验与工具链（推荐的工作流闭环）
-
-每个 Skill 的工作流都是「写文件 → 校验到零错误 → 交付」。随附的零依赖 CLI（纯 Python 3 标准库）：
+## 安装
 
 ```bash
-# 校验（自动识别 deck / canvas / design-system；也可用 check-slides 等显式命令）
-python3 tools/validator.py check examples/demo-slides
+pipx install opendesignkit        # 或 pip install opendesignkit
+odk --version
+```
+
+不想装包？克隆仓库后 `python3 tools/validator.py ...` 与 `odk` 完全等效（同一引擎）。
+
+## 校验与工具链（推荐的工作流闭环）
+
+每个 Skill 的工作流都是「写文件 → 校验到零错误 → 交付」。随附的零依赖 CLI `odk`（纯 Python 3 标准库）：
+
+```bash
+# 校验（自动识别 deck / canvas / design-system）
+odk check examples/demo-slides
+odk check examples/demo-design --json      # 机器可读输出（供 agent / CI）
 
 # 脚手架：生成开箱即过校验的骨架
-python3 tools/validator.py init-deck my-deck               # deck.json + 封面页 + 播放器
-python3 tools/validator.py init-canvas my-canvas           # canvas.json + 画板 + support.js
-python3 tools/validator.py init-design-system my-brand    # tokens + 品牌手册 + tokens.css
+odk init deck my-deck                      # deck.json + 封面页 + 播放器
+odk init canvas my-canvas                  # canvas.json + 画板 + support.js
+odk init system my-brand                   # tokens + 品牌手册 + tokens.css
 
 # 构建
-python3 tools/validator.py build-player my-deck           # 重新生成含最新讲稿的放映器
-python3 tools/validator.py build-tokens my-brand          # tokens.json -> tokens.css
+odk build player my-deck                   # 重新生成含最新讲稿的放映器
+odk build tokens my-brand                  # tokens.json -> tokens.css
+
+# 预览与导出
+odk serve my-canvas                        # 本地预览服务（启用 dc-import 子组件）
+odk export-pdf my-deck                     # 每页导出 16:9 PDF（需本机 Chrome）
 ```
 
 播放器：双击生成的 `player.html` 即可放映——←→ 翻页、`S` 讲稿、`O` 目录、`F` 全屏；支持 `?n=2`、`?notes=1` 参数。三个示例当前均为 **0 错误 0 警告**。校验器检查：JSON 结构与版本、order/board 完整性、画板必备元素（`<x-dc>`、DCLogic 脚本、`data-props`）、禁用标签、`$preview` 与画框一致性、1920×1080 舞台、token 命名/取值合法性等。

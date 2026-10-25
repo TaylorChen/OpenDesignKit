@@ -8,7 +8,7 @@
 | 路径 | 许可证 | 说明 |
 |---|---|---|
 | `skills/**` | **BaoCut Community License v1.0**（完整文本见 [`licenses/baocut-community-license.txt`](licenses/baocut-community-license.txt)） | 改编自上游 `skills/baocut/built-in-skills/{design,design-system,slides}`，属上游许可证定义的 Software 修改版。依据其 §2 以非商业目的免费共享本修改版，并按 §5 要求标注修改与出处。**不得移除或替换该许可证对这部分材料的条件。** |
-| `tools/**`、`examples/**`（含 `support.js` 预览运行时）、`README.md`、`NOTICE.md` | **MIT**（见 [`LICENSE`](LICENSE)） | 本项目独立编写/创作（validator 与 support.js 为基于公开文件格式规范的独立实现，不含上游代码；examples 属于用上述 Skill 产出的 Content）。 |
+| `odk/**`（含 `odk/templates/`）、`tools/**`、`examples/**`（含 `support.js` 预览运行时）、`README.md`、`NOTICE.md` | **MIT**（见 [`LICENSE`](LICENSE)） | 本项目独立编写/创作（validator、odk CLI 与 support.js 为基于公开文件格式规范的独立实现，不含上游代码；examples 属于用上述 Skill 产出的 Content）。 |
 
 ## 修改声明（上游许可证 §5）
 

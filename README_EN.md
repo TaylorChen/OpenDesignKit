@@ -16,15 +16,19 @@ Adapted from the built-in skills of [JimLiu/baocut](https://github.com/JimLiu/ba
 
 Design system tokens are the **single source of truth** → boards and slides **reference** them → everything on disk is **plain files**, no database or remote service required.
 
-## Toolchain (zero dependencies, pure Python 3 stdlib)
+## Install & toolchain (zero dependencies, pure Python 3 stdlib)
 
 ```bash
-python3 tools/validator.py check examples/demo-slides    # auto-detects format; 0 errors expected
-python3 tools/validator.py init-deck my-deck             # scaffold: deck + cover + player
-python3 tools/validator.py init-canvas my-canvas         # scaffold: canvas + board + support.js
-python3 tools/validator.py init-design-system my-brand   # scaffold: tokens + manual + tokens.css
-python3 tools/validator.py build-player my-deck          # (re)build the slide player
-python3 tools/validator.py build-tokens my-brand         # compile tokens.json -> tokens.css
+pipx install opendesignkit          # or: pip install opendesignkit
+
+odk check examples/demo-slides      # validate (auto-detects format)
+odk init deck my-deck               # scaffold: deck + cover + player
+odk init canvas my-canvas           # scaffold: canvas + board + support.js
+odk init system my-brand            # scaffold: tokens + manual + tokens.css
+odk build player my-deck            # (re)build the slide player
+odk build tokens my-brand           # compile tokens.json -> tokens.css
+odk serve my-canvas                 # local preview server (enables dc-import)
+odk export-pdf my-deck              # per-slide 16:9 PDF via headless Chrome
 ```
 
 - **Slide player**: open the generated `player.html` — arrow keys to navigate, `S` speaker notes, `O` overview, `F` fullscreen; speaker notes are extracted and inlined so it works from `file://`.
