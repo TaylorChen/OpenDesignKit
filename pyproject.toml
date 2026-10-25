@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "opendesignkit"
-version = "0.1.1"
+version = "0.1.2"
 description = "Industrial-grade design suite for every AI agent: open-design / open-slides / open-design-system skills, validator, scaffolds, slide player, tokens compiler."
 readme = "README.md"
 requires-python = ">=3.9"

@@ -3,6 +3,7 @@ NOTICE.md
 README.md
 pyproject.toml
 odk/__init__.py
+odk/__main__.py
 odk/cli.py
 odk/core.py
 odk/templates/board.html
