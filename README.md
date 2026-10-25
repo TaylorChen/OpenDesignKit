@@ -24,18 +24,26 @@
 
 ```
 OpenDesignKit/
+├── odk/                         # 统一 CLI（pip 包主体）
+│   ├── core.py                  # 校验/脚手架/构建引擎
+│   ├── cli.py                   # 命令行入口
+│   └── templates/               # 脚手架与放映器模板（随 wheel 分发）
 ├── skills/
-│   ├── open-design/           # 设计稿 Skill（SKILL.md + references/ 9 篇）
-│   ├── open-design-system/    # 设计系统 Skill（SKILL.md + references/ 6 篇）
-│   └── open-slides/           # 幻灯片 Skill（SKILL.md + references/ 4 篇）
+│   ├── open-design/             # 设计稿 Skill（SKILL.md + references/ 9 篇）
+│   ├── open-design-system/      # 设计系统 Skill（SKILL.md + references/ 6 篇）
+│   └── open-slides/             # 幻灯片 Skill（SKILL.md + references/ 4 篇）
 ├── tools/
-│   └── validator.py             # 零依赖校验器（纯 Python 3 标准库）
-├── examples/
-│   ├── demo-design/             # 设计稿示例（canvas.json + Main.dc.html）
-│   ├── demo-design-system/      # 设计系统示例（tokens + 品牌手册）
-│   └── demo-slides/             # 幻灯片示例（deck.json + 3 页）
-├── LICENSE
-└── README.md
+│   ├── validator.py             # 遗留入口（与 odk 同一引擎，保持兼容）
+│   └── build-gallery.py         # 示例 → 文档站画廊同步脚本
+├── examples/                    # 三个格式的示例（全部通过校验）
+├── docs/                        # GitHub Pages 文档站 + 示例画廊（Jekyll）
+├── tests/                       # 单元测试（python3 -m unittest discover -s tests）
+├── licenses/                    # 上游 BaoCut Community License 全文
+├── .githooks/                   # pre-commit：示例校验 + 单测门禁
+├── NOTICE.md                    # 许可分区与出处声明
+├── CHANGELOG.md · CONTRIBUTING.md · SECURITY.md · CODE_OF_CONDUCT.md
+├── LICENSE (MIT)
+└── README.md / README_EN.md
 ```
 
 ## 安装到你的 Agent 工具
@@ -83,7 +91,7 @@ odk build player my-deck                   # 重新生成含最新讲稿的放�
 odk build tokens my-brand                  # tokens.json -> tokens.css
 
 # 预览与导出
-odk serve my-canvas                        # 本地预览服务（启用 dc-import 子组件）
+odk serve my-canvas                        # 本地预览服务（自动探测公共根，../ 相对引用可直接解析）
 odk export-pdf my-deck                     # 每页导出 16:9 PDF（需本机 Chrome）
 ```
 
@@ -117,6 +125,12 @@ odk export-pdf my-deck                     # 每页导出 16:9 PDF（需本机 C
 2. **宿主能力优雅降级**：若宿主提供 `design_import_asset` / `slides_import_asset` 等工具则用之；否则退化为相对路径引用与手动校验。
 3. **验证优先**：所有产出先过 validator，再交给用户。
 
+## 质量保障
+
+- **本地门禁**：pre-commit 钩子自动校验三个示例 + 跑单元测试，不合格无法提交；
+- **真实任务验证**：项目自身用三次完整工作流做了 dogfood 测试（5 页 deck、交互定价画板、tokens 全链路），过程中发现并修复 4 个真实缺陷——过程与证据见[文档站 Dogfood 报告](https://taylorchen.github.io/OpenDesignKit/dogfood.html)；
+- **零依赖承诺**：`odk` 与引擎只用 Python 3 标准库，无供应链面。
+
 ## 致谢与来源
 
 - 上游：[JimLiu/baocut](https://github.com/JimLiu/baocut) —— commit `7aa049e8` 引入 Claude Design（Design Canvas + Design System）与 Claude Slides 集成。`skills/` 目录为该提交对应内置 Skill 的**修改版**（通用化改造），非官方发布物。
@@ -125,5 +139,5 @@ odk export-pdf my-deck                     # 每页导出 16:9 PDF（需本机 C
 
 ## License
 
-- `tools/`、`examples/`、文档：**MIT**（[LICENSE](LICENSE)）
+- `odk/`、`tools/`、`examples/`、文档：**MIT**（[LICENSE](LICENSE)）
 - `skills/`（改编自上游）：**BaoCut Community License v1.0**（[licenses/baocut-community-license.txt](licenses/baocut-community-license.txt)），允许非商业免费共享与修改，商业化需上游书面授权；详见 [NOTICE.md](NOTICE.md)

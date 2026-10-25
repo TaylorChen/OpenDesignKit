@@ -47,7 +47,7 @@ odk export-pdf my-deck              # per-slide 16:9 PDF via headless Chrome
 
 ## License
 
-- `tools/`, `examples/`, docs: **MIT** ([LICENSE](LICENSE))
+- `odk/`, `tools/`, `examples/`, docs: **MIT** ([LICENSE](LICENSE))
 - `skills/` (adapted from upstream): **BaoCut Community License v1.0** ([licenses/baocut-community-license.txt](licenses/baocut-community-license.txt)) — noncommercial sharing and modification permitted; commercialization requires upstream written consent. See [NOTICE.md](NOTICE.md).
 
 ## Credits & provenance
