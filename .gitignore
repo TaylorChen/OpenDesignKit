@@ -1,1 +1,5 @@
 examples/*/export/
+dist/
+*.egg-info/
+__pycache__/
+.venv/
