@@ -1,0 +1,16 @@
+title: OpenDesignKit
+description: 面向全 Agent 的工业级设计套件 —— 设计稿 / 幻灯片 / 设计系统
+url: "https://taylorchen.github.io"
+baseurl: "/OpenDesignKit"
+remote_theme: just-the-docs/just-the-docs
+plugins:
+  - jekyll-remote-theme
+
+color_scheme: "light"
+search_enabled: true
+heading_anchors: true
+
+just_the_docs:
+  color_scheme: light
+
+nav_sort: order
