@@ -57,3 +57,5 @@ odk export-pdf my-deck              # per-slide 16:9 PDF via headless Chrome
 - This repository is not affiliated with or endorsed by Anthropic.
 
 Maintained by [TaylorChen](https://github.com/TaylorChen) · See [CHANGELOG](CHANGELOG.md) · Contributions welcome ([CONTRIBUTING](CONTRIBUTING.md))
+
+**Try it online**: [Docs](https://taylorchen.github.io/OpenDesignKit/) · [Gallery](https://taylorchen.github.io/OpenDesignKit/gallery.html) (open the player / interactive board right in your browser)
