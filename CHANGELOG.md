@@ -3,6 +3,15 @@
 All notable changes to this project are documented in this file.
 Format based on [Keep a Changelog](https://keepachangelog.com/); versioning: semver.
 
+## [0.1.2] - 2026-10-25
+
+### Fixed
+- **Player scaling**: `#frame` was flex-shrunk below its 1920px layout width, cropping every slide on viewports < 1920px wide. Now `flex: none` + viewport-fit scaling (`min(w/1920, h/1080)`), recomputed on init and notes toggle
+- **CLI direct execution**: `python3 odk/cli.py` crashed on relative imports; dual-mode import + `odk/__main__.py` added (`python3 -m odk` also works)
+
+### Added
+- Dogfood verification: 3 realistic workflows (5-page deck, interactive pricing board with dc-import + tokens consumption, design system), documented in `docs/dogfood.md`; all found defects fixed
+
 ## [0.1.1] - 2026-10-25
 
 ### Added

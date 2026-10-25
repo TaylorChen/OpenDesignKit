@@ -22,8 +22,13 @@ import sys
 import tempfile
 from pathlib import Path
 
-from . import core
-from . import __version__
+if __package__ in (None, ""):  # direct execution: python3 odk/cli.py ...
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from odk import core
+    from odk import __version__
+else:
+    from . import core
+    from . import __version__
 
 SLIDE_W_IN, SLIDE_H_IN = 20, 11.25  # 1920x1080 @96dpi
 
