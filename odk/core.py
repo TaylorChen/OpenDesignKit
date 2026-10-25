@@ -703,6 +703,55 @@ def compile_tokens(tokens):
     return "\n\n".join(out) + "\n", list(dict.fromkeys(warn))
 
 
+def probe_serve_root(target_dir):
+    """Pick the directory to serve so that `../` relative references
+    (tokens.css, sibling boards, assets) resolve over http.
+
+    Scans text files under target_dir for `../` references, resolves them
+    against each file's directory, and serves the deepest common ancestor
+    of the target dir and all external targets. Returns (root, notes)
+    where notes explains the decision for printing.
+
+    """
+    target = Path(target_dir).resolve()
+    exts = {".html", ".css", ".js", ".md", ".json"}
+    ref_re = re.compile(r"\.\./[^\s\"'\)>]+")
+    externals, missing = set(), []
+    count = 0
+    for f in sorted(target.rglob("*")):
+        if not f.is_file() or f.suffix.lower() not in exts:
+            continue
+        if len(f.relative_to(target).parts) > 6:
+            continue
+        count += 1
+        if count > 2000:
+            break
+        try:
+            text = f.read_text(encoding="utf-8", errors="ignore")
+        except OSError:
+            continue
+        for m in ref_re.finditer(text):
+            resolved = (f.parent / m.group()).resolve()
+            if target in resolved.parents or resolved == target:
+                continue  # stays inside the served dir
+            if resolved.exists():
+                externals.add(resolved if resolved.is_dir() else resolved.parent)
+            else:
+                missing.append(str(resolved.relative_to(target.parent)) if target.parent in resolved.parents else str(resolved))
+    if not externals:
+        if missing:
+            return target, [f"警告：{len(missing)} 个被引用的文件不存在，例如 {missing[0]}"]
+        return target, []
+    root = Path(os.path.commonpath([target] + sorted(externals)))
+    if root == target:
+        return target, []
+    notes = [f"自动向上探测：画板引用了 {len(externals)} 个目录外的文件（如 ../my-brand/tokens.css），"
+             f"已改用公共父目录作为服务根，使这些相对路径可解析。"]
+    if missing:
+        notes.append(f"警告：{len(missing)} 个被引用的文件不存在，例如 {missing[0]}")
+    return root, notes
+
+
 def build_tokens(target_dir):
     p = Path(target_dir)
     print(f"\n{BOLD}{CYAN}编译 Design System tokens：{RESET}{p}")

@@ -111,3 +111,34 @@ class TestValidatorsPositive(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestProbeServeRoot(unittest.TestCase):
+    def _build(self):
+        base = Path(tempfile.mkdtemp())
+        (base / "pricing").mkdir()
+        (base / "my-brand").mkdir()
+        (base / "pricing" / "Pricing.dc.html").write_text(
+            '<link rel="stylesheet" href="../my-brand/tokens.css">', encoding="utf-8")
+        (base / "my-brand" / "tokens.css").write_text(":root{--a:#fff}", encoding="utf-8")
+        return base
+
+    def test_probe_finds_common_parent(self):
+        base = self._build().resolve()
+        root, notes = core.probe_serve_root(base / "pricing")
+        self.assertEqual(root, base)
+        self.assertTrue(any("向上探测" in n for n in notes))
+
+    def test_no_refs_serves_target(self):
+        base = Path(tempfile.mkdtemp()).resolve()
+        (base / "solo.dc.html").write_text("<p>hi</p>", encoding="utf-8")
+        root, notes = core.probe_serve_root(base)
+        self.assertEqual(root, base)
+        self.assertEqual(notes, [])
+
+    def test_missing_ref_reported(self):
+        base = self._build()
+        (base / "pricing" / "Pricing.dc.html").write_text(
+            '<link rel="stylesheet" href="../ghost/x.css">', encoding="utf-8")
+        root, notes = core.probe_serve_root(base / "pricing")
+        self.assertTrue(any("不存在" in n for n in notes))

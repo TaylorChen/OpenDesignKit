@@ -29,7 +29,7 @@ permalink: /dogfood.html
 **发现并修复**：
 - 🐛 **`python3 odk/cli.py serve` 直接执行崩溃**：cli 使用相对导入（`from . import core`），脱离包上下文即失败。
   修复：双模式导入（直接执行时自举 sys.path）+ 新增 `odk/__main__.py`，`python3 -m odk` 与直接执行均可用。
-- ⚠ **体验洞察**：画板引用兄弟目录的 `tokens.css` 时，`odk serve` 必须服务**公共父目录**而非画板目录（否则相对路径 404、`var(--*)` 元素全部隐形）。已在文档记录；后续可在 serve 时自动向上探测。
+- ✅ **体验洞察（已修复）**：画板引用兄弟目录的 `tokens.css` 时，`odk serve` 现在会**自动向上探测**：扫描 `../` 引用并改用公共父目录作为服务根（也可 `--root` 显式指定）；幽灵引用会给出警告。
 
 ## 测试 C：设计系统——tokens 编译与消费
 

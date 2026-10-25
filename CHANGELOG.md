@@ -10,6 +10,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/); versioning: sem
 - **CLI direct execution**: `python3 odk/cli.py` crashed on relative imports; dual-mode import + `odk/__main__.py` added (`python3 -m odk` also works)
 
 ### Added
+- `odk serve`: auto-probes for `../` references (e.g. sibling `tokens.css`) and serves the deepest common ancestor; `--root` override; warns about missing referenced files
 - Dogfood verification: 3 realistic workflows (5-page deck, interactive pricing board with dc-import + tokens consumption, design system), documented in `docs/dogfood.md`; all found defects fixed
 
 ## [0.1.1] - 2026-10-25

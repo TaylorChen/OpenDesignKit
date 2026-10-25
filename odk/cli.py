@@ -106,14 +106,27 @@ def cmd_build(args):
 # ------------------------------------------------------------------ serve
 
 def cmd_serve(args):
-    handler = functools_partial_directory_handler(args.dir)
+    target = Path(args.dir).resolve()
+    if args.root:
+        root = Path(args.root).resolve()
+        notes = []
+    else:
+        root, notes = core.probe_serve_root(target)
+    handler = functools_partial_directory_handler(root)
     port = args.port
     with socketserver.ThreadingTCPServer(("127.0.0.1", port), handler) as httpd:
         url = f"http://127.0.0.1:{port}"
         print(f"{core.BOLD}{core.CYAN}OpenDesignKit preview server{RESET_ALL}")
-        print(f"  serving: {Path(args.dir).resolve()}")
-        print(f"  url:     {url}  (Ctrl-C 停止)")
-        print(f"  提示:    画板通过 {url}/Main.dc.html 访问时 dc-import 子组件可用")
+        print(f"  target:  {target}")
+        print(f"  url:     {url}{'/'+target.relative_to(root).as_posix() if root != target else '/'}  (Ctrl-C 停止)")
+        if root != target:
+            print(f"  root:    {root}  （已自动向上探测）")
+        for n in notes:
+            core.print_warn(n)
+        if root != target:
+            print(f"  提示:    相对引用（如 ../my-brand/tokens.css）现在可以解析了")
+        else:
+            print(f"  提示:    画板通过本服务访问时 dc-import 子组件可用；可用 --root 显式指定服务根")
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:
@@ -203,9 +216,10 @@ def build_parser():
     p_build.add_argument("dir")
     p_build.set_defaults(func=cmd_build)
 
-    p_serve = sub.add_parser("serve", help="local preview server (enables dc-import)")
+    p_serve = sub.add_parser("serve", help="local preview server (auto-detects shared root for ../ references)")
     p_serve.add_argument("dir")
     p_serve.add_argument("--port", type=int, default=8620)
+    p_serve.add_argument("--root", default=None, help="override the served root directory")
     p_serve.set_defaults(func=cmd_serve)
 
     p_pdf = sub.add_parser("export-pdf", help="export each slide as 16:9 PDF")
