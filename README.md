@@ -52,11 +52,15 @@ Skill 本质是「一份指令文档 + 参考页」，把它放进宿主的 skil
 ## 安装
 
 ```bash
-pipx install opendesignkit        # 或 pip install opendesignkit
+git clone https://github.com/TaylorChen/OpenDesignKit.git
+cd OpenDesignKit
+pipx install .                        # 或 pip install .；之后全局可用 odk
 odk --version
 ```
 
-不想装包？克隆仓库后 `python3 tools/validator.py ...` 与 `odk` 完全等效（同一引擎）。
+也可以完全不安装：克隆后直接 `python3 tools/validator.py ...`（同一引擎，零依赖）。
+
+> PyPI 发布规划中；当前请从源码安装。
 
 ## 校验与工具链（推荐的工作流闭环）
 

@@ -6,7 +6,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/); versioning: sem
 ## [0.1.1] - 2026-10-25
 
 ### Added
-- **`odk` unified CLI** (pip-installable, `pipx install opendesignkit`): `init deck|canvas|system`, `check [--json]`, `build player|tokens`, `serve`, `export-pdf`
+- **`odk` unified CLI** (pip-installable; currently install from source: `pipx install .`): `init deck|canvas|system`, `check [--json]`, `build player|tokens`, `serve`, `export-pdf`
 - `odk serve`: local preview server enabling `dc-import` child boards over http
 - `odk export-pdf`: per-slide 16:9 PDF export via headless Chrome (`--no-pdf-header-footer`)
 - `odk check --json`: machine-readable validation output for agents/CI

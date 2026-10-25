@@ -19,7 +19,8 @@ Design system tokens are the **single source of truth** → boards and slides **
 ## Install & toolchain (zero dependencies, pure Python 3 stdlib)
 
 ```bash
-pipx install opendesignkit          # or: pip install opendesignkit
+git clone https://github.com/TaylorChen/OpenDesignKit.git
+cd OpenDesignKit && pipx install .   # then `odk` is available globally
 
 odk check examples/demo-slides      # validate (auto-detects format)
 odk init deck my-deck               # scaffold: deck + cover + player
